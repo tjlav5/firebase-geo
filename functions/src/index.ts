@@ -38,23 +38,12 @@ interface GetGeohashRangeProps {
 
 export const getGeohashRange = functions.handler.https.onCall(
   ({ latitude, longitude, radius }: GetGeohashRangeProps) => {
-    // const lat = 0.0144927536231884; // degrees latitude per mile
-    // const lon = 0.0181818181818182; // degrees longitude per mile
-    // const lowerLat = latitude - lat * radius;
-    // const lowerLon = longitude - lon * radius;
-    // const upperLat = latitude + lat * radius;
-    // const upperLon = longitude + lon * radius;
-    // const lower = geohash.encode(lowerLat, lowerLon);
-    // const upper = geohash.encode(upperLat, upperLon);
-    // return [lower, upper];
-
-    // console.log({ latitude, longitude, radius });
-
-    const foo = geohashQueries(
+    const queries = geohashQueries(
       new firebase.firestore.GeoPoint(latitude, longitude),
       radius
     );
-    return foo;
+    // console.log({ queries });
+    return queries;
   }
 );
 
@@ -67,6 +56,8 @@ export const onPersonWrite = functions.firestore
     // const { location } = snap.data();
     const data = change.after.data();
     const previousData = change.before.data();
+
+    console.log({ data, previousData });
 
     // console.log({
     //   data,

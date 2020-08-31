@@ -4,10 +4,13 @@
   "description": "",
   "main": "functions/lib/index.js",
   "scripts": {
-    "start": "tsc --project ./functions && concurrently --kill-others \"npm:dev:emulators\" \"tsc --project ./functions --watch\"",
-    "dev:functions": "cd functions && npm run dev",
-    "dev:emulators": "firebase ext:dev:emulators:start --test-params=test_params.env --project=geo --test-config=firebase.json",
-    "test": "firebase ext:dev:emulators:exec --test-params=test_params.env --project=geo-test --test-config=firebase.json `cd functions && npm run test-coverage`"
+    "build": "cd functions && npm run build",
+    "start": "concurrently \"npm:start:*\"",
+    "start:emulators": "firebase ext:dev:emulators:start --project=geo-test --test-config=firebase.json --test-params=.env",
+    "start:client": "cd functions && npm run dev",
+    "exec": "firebase ext:dev:emulators:exec --project=geo-test --test-config=firebase.json --test-params=.env \"$npm_config_cmd\"",
+    "exec:test": "npm run exec --cmd='cd functions && npm run test:dev'",
+    "exec:coverage": "npm run exec --cmd='cd functions && npm run test:coverage'"
   },
   "author": "tjlav5",
   "license": "MIT",

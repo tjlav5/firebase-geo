@@ -1,4 +1,0 @@
-01:09:16.569 [NamespaceSystem-akka.actor.default-dispatcher-6] INFO akka.event.slf4j.Slf4jLogger - Slf4jLogger started
-01:09:16.802 [main] INFO com.firebase.server.forge.App$ - Listening at localhost:9000
-01:10:14.678 [Thread-1] INFO com.firebase.server.forge.App$ - Attempting graceful shutdown.
-01:10:14.736 [Thread-1] INFO com.firebase.server.forge.App$ - Graceful shutdown complete.

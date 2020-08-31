@@ -6,3 +6,9 @@
 typings/
 
 node_modules/
+
+coverage/
+
+lib/
+
+*.log

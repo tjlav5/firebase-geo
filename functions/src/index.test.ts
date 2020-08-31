@@ -78,13 +78,21 @@ async function runIntegrationTest({
   );
 
   // Give a little bit of time for the Extension hook
-  await new Promise((r) => setTimeout(r, 8000));
+  await new Promise((r) => setTimeout(r, 4000));
 
-  const { data } = await getGeohashRange({
-    latitude,
-    longitude,
-    radius, // meters
-  });
+  let data = [];
+  try {
+    const response = await getGeohashRange({
+      latitude,
+      longitude,
+      radius, // meters
+    });
+    data = response.data;
+  } catch (e) {
+    console.log(e);
+  }
+
+  console.log({ data });
 
   const partitionedDocs = await Promise.all(
     data.map(async ([lower, upper]: [number, number]) => {

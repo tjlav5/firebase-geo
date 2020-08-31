@@ -3,8 +3,8 @@
   "scripts": {
     "build": "tsc",
     "dev": "tsc --watch",
-    "test": "jest --watch --verbose false",
-    "test-coverage": "jest -i --coverage --verbose false"
+    "test:dev": "jest --watch --verbose false",
+    "test:coverage": "jest -i --coverage --verbose false"
   },
   "main": "lib/index.js",
   "dependencies": {
@@ -23,5 +23,13 @@
     "ts-jest": "^26.3.0",
     "typescript": "^3.9.7"
   },
-  "private": true
+  "private": true,
+  "jest": {
+    "testEnvironment": "node",
+    "preset": "ts-jest",
+    "testPathIgnorePatterns": [
+      "<rootDir>/lib/",
+      "<rootDir>/node_modules/"
+    ]
+  }
 }

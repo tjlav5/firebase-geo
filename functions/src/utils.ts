@@ -221,9 +221,9 @@ export function geohashQueries(
 ): string[][] {
   validateLocation(center);
   const queryBits = Math.max(1, boundingBoxBits(center, radius));
-  logger.log({ queryBits });
+  // logger.log({ queryBits });
   const geohashPrecision = Math.ceil(queryBits / BITS_PER_CHAR);
-  logger.log({ geohashPrecision });
+  // logger.log({ geohashPrecision });
   const coordinates:
     | GeoFirestoreTypes.cloud.GeoPoint
     | GeoFirestoreTypes.web.GeoPoint[] = boundingBoxCoordinates(center, radius);
