@@ -51,6 +51,7 @@ const nearDocs = docs.filter(d => distance(center, d['geoPointField']) <= radius
 
 ```typescript
 import firebase from 'firebase';
+import {distance} from 'firebase-geo';
 import {merge, Observable} from 'rxjs';
 import {concatMap, map, switchMap} from 'rxjs/operators';
 ...
@@ -92,7 +93,7 @@ currentLocation.pipe(
 ).subscribe(nearDocs => {});
 
 /**
- * Helper method to convert a Collection's onSnapshot to an Observable
+ * Helper method to convert a Collection's snapshot-updates to an Observable
  */
 function obsFromCollectionRef(ref: firebase.firestore.CollectionReference) {
     return new Observable(subscriber => {
