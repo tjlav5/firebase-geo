@@ -63,7 +63,7 @@ const currentLocation = new ReplaySubject<[firebase.firestore.GeoPoint, number]>
 currentLocation.pipe(
     switchMap(([center, radius]) => {
         // Fetch geohash-ranges for the given location
-        const geohashRanges = getGeohashRanges({
+        const {data: geohashRanges}: [string, string][] = getGeohashRanges({
             location: [center.latitude, center.longitude],
             radius,
         });
