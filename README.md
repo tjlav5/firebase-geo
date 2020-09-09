@@ -4,6 +4,31 @@ Query Firebase Firestore for documents in a collection that are within a certain
 
 ## Usage
 
+### Easy usage w/ observables
+
+```typescript
+import firebase from "firebase";
+import { findCloseDocuments } from "fire-geo"
+import { ReplaySubject } from "rxjs";
+import { combineLatest } from "rxjs/operators";
+
+const location$ = new ReplaySubject<firebase.firestore.GeoPoint>();
+const radius$ = new ReplaySubject<number>();
+
+combineLatest(location$, radius$)
+  .pipe(
+      findCloseDocuments({
+          collectionRef: firebase.firestore().collection('restaurants')
+          getGeohashRangesFn: firebase.functions().callable('getGeohashRanges'),
+          // Find all close-pizzerias
+          queryFn: (query) => query.where('cuisine', '==', 'pizza'),
+      })
+  )
+  .subscribe((nearDocs) => {})
+```
+
+### Advanced usage w/ promises
+
 ```typescript
 import firebase from 'firebase';
 ...
@@ -16,7 +41,7 @@ const collectionRef = firebase.firestore().collection('places');
 const currentLocation: [number, number] = [30.123456, 67.567890];
 const radius = 1000; // 1km
 
-const {data: geohashRanges}: [string, string][] = getGeohashRanges({
+const data = await getGeohashRanges({
     location: currentLocation,
     radius,
 });
@@ -25,10 +50,10 @@ const {data: geohashRanges}: [string, string][] = getGeohashRanges({
  * 2. Fetch geohash ranges for a given location+radius
  */
 const partitionedDocs = Promise.all(
-    geohashRanges.map(async ([lower, upper]) => {
+    data.geohashRanges.map(async ([lower, upper]) => {
         const coll = await collectionRef
-          .where("geohash", ">=", lower)
-          .where("geohash", "<=", upper)
+          .where(data.geohashField, ">=", lower)
+          .where(data.geohashField, "<=", upper)
           .get();
         return coll.docs.map((d) => d.data());
     })));
@@ -44,66 +69,62 @@ const docs = partitionedDocs.flat();
 import {distance} from 'firebase-geo';
 
 const center = new firebase.firestore.GeoPoint(...currentLocation);
-const nearDocs = docs.filter(d => distance(center, d['geoPointField']) <= radius);
+const nearDocs = docs.filter(d => haversine(center, d[data.geoPointField]) <= radius);
 ```
 
 ### Advanced usage w/ observables
 
 ```typescript
-import firebase from 'firebase';
-import {distance} from 'firebase-geo';
-import {merge, Observable} from 'rxjs';
-import {concatMap, map, switchMap} from 'rxjs/operators';
-...
-const getGeohashRanges = firebase.functions().callable('getGeohashRanges');
-const collectionRef = firebase.firestore().collection('places');
+import firebase from "firebase";
+import { collectionData } from "rxfire/firestore";
+import { ReplaySubject, combineLatest, from, merge } from "rxjs";
+import { map, mergeMap, scan, switchMap } from "rxjs/operators";
 
-const currentLocation = new ReplaySubject<[firebase.firestore.GeoPoint, number]>();
+const getGeohashRanges = firebase.functions().callable("getGeohashRanges");
+const collectionRef = firebase.firestore().collection("places");
 
-currentLocation.pipe(
-    switchMap(([center, radius]) => {
-        // Fetch geohash-ranges for the given location
-        const {data: geohashRanges}: [string, string][] = getGeohashRanges({
-            location: [center.latitude, center.longitude],
-            radius,
-        });
-        return {
-            center,
-            radius,
-            geohashRanges,
-        }
-    }),
-    concatMap(({center, radius, geohasRanges}) =>
-        merge(
+const location$ = new ReplaySubject<firebase.firestore.GeoPoint>();
+const radius$ = new ReplaySubject<number>();
+
+combineLatest(location$, radius$)
+  .pipe(
+    switchMap(([{ latitude, longitude }, radius]) => {
+      // Fetch geohash-ranges for the given location
+      return from(
+        getGeohashRanges({
+          location: [latitude, longitude],
+          radius,
+        })
+      ).pipe(
+        mergeMap(({ data: { geohashRanges, geoPointField, geohashField } }) => {
+          return merge(
             geohashRanges.map(([lower, upper]) =>
-                // Fetch all documents residing in neighbor geohash-cells
-                obsFromCollectionRef(collectionRef
-                    .where("geohash", ">=", lower)
-                    .where("geohash", "<=", upper)
-                ).pipe(map(docs => docs.map(d => d.data())))
+              // Fetch all documents residing in neighbor geohash-cells
+              collectionData(
+                collectionRef
+                  .where(geohashField, ">=", lower)
+                  .where(geohashField, "<=", upper)
+              )
             )
-        ).pipe(
-            map(partitionedDocs => partitionedDocs.flat()),
-            // Optionally filter out all docs with euclidean distance
-            map(allDocs => allDocs.filter(d =>
-                distance(center, d["geoPointField"]) <= radius
-            )),
-        )
-    )
-).subscribe(nearDocs => {});
-
-/**
- * Helper method to convert a Collection's snapshot-updates to an Observable
- */
-function obsFromCollectionRef(ref: firebase.firestore.CollectionReference) {
-    return new Observable(subscriber => {
-        unsubscribe = ref.onSnapshot(subscriber);
-
-        return () => {
-            unsubscribe();
-        };
-    });
-}
+          ).pipe(
+            // Filter docs that are truly within the search-radius
+            map((docs) =>
+              docs.filter((doc) => {
+                const { latitude: docLat, longitude: docLong } = doc[
+                  geoPointField
+                ];
+                return (
+                  haversine([latitude, longitude], [docLat, docLong]) <= radius
+                );
+              })
+            ),
+            scan((allFoundDocs, foundDocs) => [...allFoundDocs, ...foundDocs])
+          );
+        })
+      );
+    })
+  )
+  .subscribe((nearDocs) => {});
 ```
 
 ## Shout out
