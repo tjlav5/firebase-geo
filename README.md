@@ -8,23 +8,26 @@ Query Firebase Firestore for documents in a collection that are within a certain
 
 ```typescript
 import firebase from "firebase";
-import { findCloseDocuments } from "fire-geo"
+import { createFindNearByDocumentsOperator } from "fire-geo";
 import { ReplaySubject } from "rxjs";
 import { combineLatest } from "rxjs/operators";
 
 const location$ = new ReplaySubject<firebase.firestore.GeoPoint>();
 const radius$ = new ReplaySubject<number>();
 
+const getGeohashRanges = firebase.functions().callable("getGeohashRanges");
+const findNearByDocuments = createFindNearByDocumentsOperator(getGeohashRanges);
+
 combineLatest(location$, radius$)
   .pipe(
-      findCloseDocuments({
-          collectionRef: firebase.firestore().collection('restaurants')
-          getGeohashRangesFn: firebase.functions().callable('getGeohashRanges'),
-          // Find all close-pizzerias
-          queryFn: (query) => query.where('cuisine', '==', 'pizza'),
-      })
+    findNearByDocuments({
+      collectionRef: firebase.firestore().collection("restaurants"),
+      field: "location",
+      // Limit to pizzerias
+      queryFn: (query) => query.where("cuisine", "==", "pizza"),
+    })
   )
-  .subscribe((nearDocs) => {})
+  .subscribe((nearByDocs) => {});
 ```
 
 ### Advanced usage w/ promises

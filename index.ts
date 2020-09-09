@@ -44,16 +44,27 @@ type GetGeohashRangesFn = (
 
 interface FindCloseDocuments {
   collectionRef: firestore.CollectionReference;
-  getGeoHashRangesFn: GetGeohashRangesFn;
+  field: string;
+  getGeohashRangesFn: GetGeohashRangesFn;
   queryFn: (query: firebase.firestore.Query) => firebase.firestore.Query;
 }
 
-export function findCloseDocuments(foo: FindCloseDocuments) {
+export function createFindNearByDocuments(
+  getGeohashRangesFn: GetGeohashRangesFn
+) {
+  return (payload: Omit<FindCloseDocuments, "getGeoHashRangesFn">) =>
+    findCloseDocuments({
+      ...payload,
+      getGeohashRangesFn,
+    });
+}
+
+function findCloseDocuments(foo: FindCloseDocuments) {
   return pipe(
     switchMap(([location, radius]: [firebase.firestore.GeoPoint, number]) => {
       // Fetch geohash-ranges for the given location
       return from(
-        foo.getGeoHashRangesFn({
+        foo.getGeohashRangesFn({
           location: [location.latitude, location.longitude],
           radius,
         })
@@ -65,8 +76,8 @@ export function findCloseDocuments(foo: FindCloseDocuments) {
               collectionData(
                 foo
                   .queryFn(foo.collectionRef)
-                  .where(geohashField, ">=", lower)
-                  .where(geohashField, "<=", upper)
+                  .where(`${geohashField}.${foo.field}`, ">=", lower)
+                  .where(`${geohashField}.${foo.field}`, "<=", upper)
               )
             )
           ).pipe(
