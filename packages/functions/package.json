@@ -8,11 +8,14 @@
   },
   "main": "lib/index.js",
   "dependencies": {
+    "@turf/distance": "6.2.0-alpha.2",
+    "@turf/helpers": "^6.1.4",
     "firebase": "^7.19.1",
     "firebase-admin": "^9.1.1",
     "firebase-functions": "^3.6.1",
     "geokit": "^1.1.0",
-    "geolocation-utils": "^1.2.3"
+    "geolocation-utils": "^1.2.3",
+    "ngeohash": "^0.6.3"
   },
   "devDependencies": {
     "@firebase/testing": "^0.20.11",

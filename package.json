@@ -2,15 +2,15 @@
   "name": "firebase-geo",
   "version": "0.1.0",
   "description": "",
-  "main": "functions/lib/index.js",
+  "main": "packages/functions/lib/index.js",
   "scripts": {
-    "build": "cd functions && npm run build",
+    "build": "cd packages/functions && npm run build",
     "start": "concurrently \"npm:start:*\"",
     "start:emulators": "firebase ext:dev:emulators:start --project=geo-test --test-config=firebase.json --test-params=.env",
-    "start:client": "cd functions && npm run dev",
+    "start:client": "cd packages/functions && npm run dev",
     "exec": "firebase ext:dev:emulators:exec --project=geo-test --test-config=firebase.json --test-params=.env \"$npm_config_cmd\"",
-    "exec:test": "npm run exec --cmd='cd functions && npm run test:dev'",
-    "exec:coverage": "npm run exec --cmd='cd functions && npm run test:coverage'"
+    "exec:test": "npm run exec --cmd='cd packages/functions && npm run test:dev'",
+    "exec:coverage": "npm run exec --cmd='cd packages/functions && npm run test:coverage'"
   },
   "author": "tjlav5",
   "license": "MIT",
