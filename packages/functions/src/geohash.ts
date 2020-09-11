@@ -127,6 +127,17 @@ function idx(char: string): number {
   return BASE32_CODES.indexOf(char);
 }
 
+function nextIdx(char: string): number {
+  const index = idx(char);
+  return index === BASE32_CODES.length - 1 ? 0 : index + 1;
+}
+
+function nextCode(char: string): [string, boolean] {
+  const nextIndex = nextIdx(char);
+  const bumped = nextIndex === 0;
+  return [BASE32_CODES[nextIndex], bumped];
+}
+
 function follows(firstHash: string, secondHash: string) {
   const [firstLeaf, secondLeaf] = removeMatchingStem(firstHash, secondHash);
 
@@ -170,10 +181,37 @@ function getHashRanges(hashes: string[]): [string, string][] {
       break;
     }
 
-    ranges.push([startHash, endHash]);
+    ranges.push([startHash, bumpRange(endHash)]);
   }
 
   return ranges;
+}
+
+/**
+ * 7zy -> 7zz
+ * 7zz -> 800
+ *
+ * @param hash
+ */
+function bumpRange(hash: string): string {
+  const reversedHash = hash.split("").reverse();
+  const reverseBumpedHash: string[] = [];
+
+  let bump = true;
+  for (const char of reversedHash) {
+    if (bump) {
+      let [code, bumped] = nextCode(char);
+      reverseBumpedHash.push(code);
+      bump = bumped;
+    } else {
+      reverseBumpedHash.push(char);
+      bump = false;
+    }
+  }
+
+  const bumpedHash = reverseBumpedHash.reverse().join("");
+  // console.log({ hash, bumpedHash });
+  return bumpedHash;
 }
 
 export interface GetHashRangesRequest {
@@ -235,9 +273,18 @@ export function getHashRangesForLocation(
   const allFilterdHashes = [...filteredHashes, ...leafHashes].sort((a, b) =>
     a.localeCompare(b)
   );
+  console.log(allFilterdHashes);
+
+  const foo = allHashes.sort((a, b) => a.localeCompare(b));
 
   console.time("hashRanges");
-  const hashRanges = getHashRanges(allFilterdHashes);
+  // const hashRanges = getHashRanges(allFilterdHashes);
+  const hashRanges = getHashRanges(foo);
+
+  // upper-range needs to be +1'd...
+  // when we are searching for '7zzz',
+  // our range should be: >= 7zz && < 800
+
   console.timeEnd("hashRanges");
 
   console.timeEnd("total");

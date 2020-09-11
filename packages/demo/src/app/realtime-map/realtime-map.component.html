@@ -1,0 +1,18 @@
+<google-map
+  *ngIf="searchRadius$ | async as searchRadius"
+  height="100vh"
+  width="100vw"
+  [center]="startCenter$ | async"
+  [zoom]="zoom"
+  (centerChanged)="centerChanged($event)"
+>
+  <map-circle
+    [center]="searchRadius.center"
+    [radius]="searchRadius.radius"
+  ></map-circle>
+
+  <map-marker
+    *ngFor="let nearby of nearby$ | async"
+    [position]="nearby.position"
+  ></map-marker>
+</google-map>

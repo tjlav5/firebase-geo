@@ -56,6 +56,12 @@ export const onGeoPointWrite = functions.firestore
     }
 
     console.log(previousGeohashCache, updatedGohashCache);
+    if (
+      JSON.stringify(previousGeohashCache) ===
+      JSON.stringify(updatedGohashCache)
+    ) {
+      return false;
+    }
 
     return change.after.ref.set(
       {
