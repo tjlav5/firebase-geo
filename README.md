@@ -2,6 +2,8 @@
 
 Query Firebase Firestore for documents in a collection that are within a certain distance.
 
+![Local pizzerias in NYC in _realtime_](./map.png)
+
 ## Usage
 
 ### Easy usage w/ observables
@@ -41,7 +43,7 @@ combineLatest(location$, radius$, precision$)
         )
       );
     }),
-    scan((allNearbyDocs, nearbyDocs) => [...allNearbyDocs, ...nearbyDocs]),
+    scan((allNearbyDocs, nearbyDocs) => [...allNearbyDocs, ...nearbyDocs])
   )
   .subscribe((allNearbyDocs) => {});
 ```
