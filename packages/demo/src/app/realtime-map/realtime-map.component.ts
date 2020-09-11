@@ -29,10 +29,15 @@ import {
   debounceTime,
   take,
   concatMap,
+  distinctUntilChanged,
+  last,
+  throttleTime,
+  auditTime,
 } from 'rxjs/operators';
 import { AngularFireFunctions } from '@angular/fire/functions';
 import { AngularFirestore } from '@angular/fire/firestore';
 import { GoogleMap } from '@angular/google-maps';
+import * as firebase from 'firebase';
 
 interface GetGeohashRangeRequest {
   location: [number, number];
@@ -45,6 +50,7 @@ interface GetGeohashRangeResponse {
 }
 
 interface Restaurant {
+  slug: string;
   location: {
     latitude: string;
     longitude: string;
@@ -105,8 +111,7 @@ export class RealtimeMapComponent {
     this.precision$,
   ]).pipe(
     debounceTime(100),
-    // tap((f) => console.log(f)),
-    mergeMap(([location, radius, precision]) => {
+    switchMap(([location, radius, precision]) => {
       return this.callable({
         location,
         radius,
@@ -115,7 +120,7 @@ export class RealtimeMapComponent {
         // https://github.com/angular/angularfire/issues/2384#issuecomment-655637597
         observeOn(this.inAngularScheduler),
         map(({ ranges }) => ranges),
-        mergeMap((ranges) =>
+        concatMap((ranges) =>
           merge(
             ranges.map(([lower, upper]) =>
               this.afs
@@ -126,29 +131,27 @@ export class RealtimeMapComponent {
                 )
                 .valueChanges()
             )
+          ).pipe(
+            mergeAll(),
+            scan((allNearbyDocs, nearbyDocs) => {
+              const newSlugs = nearbyDocs.map((d) => d.slug);
+              const keepers = allNearbyDocs.filter(
+                (d) => !newSlugs.includes(d.slug)
+              );
+              return [...keepers, ...nearbyDocs];
+            }, [] as Restaurant[])
           )
-        ),
-        mergeAll(),
-        scan(
-          (allNearbyDocs, nearbyDocs) => [...allNearbyDocs, ...nearbyDocs],
-          [] as Restaurant[]
         )
       );
     })
   );
-
-  // private readonly documents$ = this.ranges$.pipe(
-  //
-  //   // tap((e) => console.log(e))
-  // );
 
   readonly nearby$ = this.ranges$.pipe(
     map((documents) =>
       documents.map((d) => ({
         position: { lat: d.location.latitude, lng: d.location.longitude },
       }))
-    ),
-    tap((e) => console.log(e))
+    )
   );
 
   readonly searchRadius$ = combineLatest([this.location$, this.radius$]).pipe(

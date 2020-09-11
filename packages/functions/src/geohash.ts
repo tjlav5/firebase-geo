@@ -48,7 +48,7 @@ function getHashesNear(
   return [...valid];
 }
 
-function countHashes(
+export function countHashes(
   hashes: string[],
   precision: number
 ): [[string, number][], string[]] {
@@ -67,7 +67,10 @@ function countHashes(
   return [Object.entries(cache), leafHashes];
 }
 
-function findSuperHashes(hashCounts: [string, number][], precision: number) {
+export function findSuperHashes(
+  hashCounts: [string, number][],
+  precision: number
+) {
   const superHashes = new Set<string>();
   for (const [prefix, count] of hashCounts) {
     const allCount = Math.pow(BASE32_CODES.length, precision - prefix.length);
@@ -78,7 +81,7 @@ function findSuperHashes(hashCounts: [string, number][], precision: number) {
   return superHashes;
 }
 
-function filterHashes(
+export function filterHashes(
   hashCounts: [string, number][],
   superHashes: Set<string>,
   precision: number
@@ -236,7 +239,6 @@ export interface GetHashRangesResponse {
 export function getHashRangesForLocation(
   request: GetHashRangesRequest
 ): GetHashRangesResponse {
-  console.log(request);
   // request validation...
   // default precision?
   // https://en.wikipedia.org/wiki/Geohash#Digits_and_precision_in_km
@@ -254,26 +256,25 @@ export function getHashRangesForLocation(
   );
   console.timeEnd("getHashesNear");
 
-  console.time("hashCounts");
-  const [hashCounts, leafHashes] = countHashes(allHashes, request.precision);
-  console.timeEnd("hashCounts");
+  // console.time("hashCounts");
+  // const [hashCounts, leafHashes] = countHashes(allHashes, request.precision);
+  // console.timeEnd("hashCounts");
 
-  console.time("superHashes");
-  const superHashes = findSuperHashes(hashCounts, request.precision);
-  console.timeEnd("superHashes");
+  // console.time("superHashes");
+  // const superHashes = findSuperHashes(hashCounts, request.precision);
+  // console.timeEnd("superHashes");
 
-  console.time("filteredHashes");
-  const filteredHashes = filterHashes(
-    hashCounts,
-    superHashes,
-    request.precision
-  );
-  console.timeEnd("filteredHashes");
+  // console.time("filteredHashes");
+  // const filteredHashes = filterHashes(
+  //   hashCounts,
+  //   superHashes,
+  //   request.precision
+  // );
+  // console.timeEnd("filteredHashes");
 
-  const allFilterdHashes = [...filteredHashes, ...leafHashes].sort((a, b) =>
-    a.localeCompare(b)
-  );
-  console.log(allFilterdHashes);
+  // const allFilterdHashes = [...filteredHashes, ...leafHashes].sort((a, b) =>
+  //   a.localeCompare(b)
+  // );
 
   const foo = allHashes.sort((a, b) => a.localeCompare(b));
 

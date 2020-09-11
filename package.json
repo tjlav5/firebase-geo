@@ -6,7 +6,7 @@
   "scripts": {
     "build": "cd packages/functions && npm run build",
     "start": "concurrently \"npm:start:*\"",
-    "start:emulators": "firebase ext:dev:emulators:start --project=geo-test --test-config=firebase.json --test-params=.env",
+    "start:emulators": "firebase ext:dev:emulators:start --import=data --project=geo-test --test-config=firebase.json --test-params=.env",
     "start:client": "cd packages/functions && npm run dev",
     "exec": "firebase ext:dev:emulators:exec --project=geo-test --test-config=firebase.json --test-params=.env \"$npm_config_cmd\"",
     "exec:test": "npm run exec --cmd='cd packages/functions && npm run test:dev'",
